@@ -9,6 +9,8 @@ var app = new Vue({
     showModal: false,
     valid: true,
     acting: false,
+    assetsList: assetsList,
+    interval: null,
     nameRules: [
       v => !!v || 'Name is required',
       v => (v && v.length <= 10) || 'Name must be less than 10 characters',
@@ -24,52 +26,96 @@ var app = new Vue({
     }
   },
   mounted() {
-    this.player = new Player;
-    if (existingPlayer) {
-      const parsed = JSON.parse(existingPlayer);
-
-      Object.entries(parsed).forEach(([key, value]) => {
-        this.player[key] = value;
-      });
-      this.loaded = true;
-    } else {
-      this.showModal = true;
+    this.load();
+  },
+  computed: {
+    inventoryItems() {
+      return this.player.assets.filter(i => i !== null);
+    },
+    getPlayerAttribsName() {
+      const header = [];
+      header.push(...Object.keys(this.player.needs));
+      return header;
+    },
+    getPlayerAttribs() {
+      const values = [];
+      values.push(...Object.values(this.player.needs).map(v => `${v.value}/${v.cap}`));
+      return values;
     }
-    this.appLoaded = true;
-
-    console.log(this.player);
-
-    this.time();
   },
   methods: {
+    load() {
+      this.player = new Player;
+
+      if (existingPlayer.get()) {
+        const parsed = JSON.parse(existingPlayer.get());
+
+        Object.entries(parsed).forEach(([key, value]) => {
+          this.player[key] = value;
+        });
+        this.loaded = true;
+        this.time();
+      } else {
+        this.showModal = true;
+      }
+      this.appLoaded = true;
+    },
     validate () {
       const validate = this.$refs.form.validate();
 
       if (validate) {
         this.showModal = false;        
         this.save();
+        this.time();
         this.loaded = true;
       }
     },
+    getValue(value) {
+      if (value.hasOwnProperty('value')) {
+        return `${value.value}/${value.cap}`;
+      }
+      return value;
+    },
     time() {
-      setInterval(() => {
-        this.player.getHungry();
-        // this.player.thirst = this.player.thirst - 1;
-        // this.player.bladder = this.player.bladder - 3;
-        // this.player.social = this.player.social - .5;
-        // this.player.rest = this.player.rest - 3;
-      }, 3000);
+      this.interval = setInterval(() => {
+        Promise.all([
+          this.player.time()
+        ])
+        .then(() => {
+          this.save();
+        })
+      }, 2000);
     },
     save() {
-      localStorage.setItem('player', JSON.stringify(this.player));
+      existingPlayer.set(JSON.stringify(this.player));
     },
-    eat() {
-      console.log('eat');
+    piss() {
+      this.player.piss();
+    },
+    consume(asset) {
       this.acting = true;
-      
-      this.player.eat();
-      
-      this.acting = false;
+      setTimeout(() => {
+        Object.entries(asset.modifiers).forEach(([key, value]) => {
+          if (this.player.__proto__[key]) {
+            this.player[key](value);
+          }
+        })
+        this.player.remove(asset.id);
+        this.acting = false;
+      }, 3000);
+    },
+    work() {
+      this.acting = true;
+      setTimeout(() => {
+        this.player.work();
+        this.acting = false;
+      }, 5000);
+    },
+    reset() {
+      clearInterval(this.interval);
+      existingPlayer.remove();
+      this.loaded = false;
+      this.load();
     }
   }
 })

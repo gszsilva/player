@@ -19,42 +19,90 @@
       <v-main>
         <v-container>
           <div v-if="!loaded">
-            loading
+            Loading Player
           </div>
           <div v-else>
-            <h1>
-              Character
-            </h1>
+            <v-row>
+              <v-col cols="12">
+                <v-btn
+                  @click="reset"
+                >
+                  Reset
+                </v-btn>
+              </v-col>
+            </v-row>
+            <v-row>
+              <v-col cols="6">
+                <h1>
+                  {{ player.name }} | {{ player.age }} | ${{ player.money }}
+                </h1>
+              </v-col>
+              <v-col cols="6">
+                <v-btn
+                  @click="work"
+                  :disabled="acting"
+                >
+                  Work
+                </v-btn>
+              </v-col>
+            </v-row>
     
             <hr />
       
             <table class="table">
               <thead>
                 <tr style="text-transform: capitalize;">
-                  <th scope="col" v-for="(_, key) in player" :key="key">
-                    {{ key }}
+                  <th scope="col" v-for="head in getPlayerAttribsName" :key="head">
+                    {{ head }}
                   </th>
                 </tr>
               </thead>
               <tbody>
                 <tr style="text-align: center;">
-                  <td v-for="(value, key) in player" :key="key">
+                  <td v-for="(value, index) in getPlayerAttribs" :key="index">
                     {{ value }}
                   </td>
                 </tr>
               </tbody>
             </table>
+
+            <v-row>
+              <v-col cols="12">
+                <v-btn
+                  :disabled="acting"
+                  color="success"
+                  class="mr-4"
+                  @click="piss"
+                >
+                  Piss
+                </v-btn>
+              </v-col>
+            </v-row>
+
+            <v-row>
+              <v-col cols="12">
+                <h2>Inventory ({{ inventoryItems.length }}/{{ player.limit }})</h2>
+              </v-col>
+              <v-col cols="12">
+                <v-btn :ripple="true" :disabled="acting" v-for="(asset, index) in inventoryItems" :key="index" @click="consume(asset)">
+                  {{ asset.name }}
+                </v-btn>
+              </v-col>
+            </v-row>
+
+            <v-row>
+              <v-col cols="12">
+                <h2>Shop</h2>
+              </v-col>
+              <v-col cols="12">
+                <v-btn :ripple="true" :disabled="acting" v-for="asset in assetsList" :key="asset.id" @click="player.buy(asset)">
+                  {{ asset.name }} / ${{ asset.price }}
+                </v-btn>
+              </v-col>
+            </v-row>
+
           </div>
 
-          <v-col cols="12">
-            <v-btn
-              :disabled="acting"
-              color="success"
-              class="mr-4"
-              @click="eat"
-            >
-              Eat
-          </v-col>
         </v-container>
       </v-main>
 
@@ -113,10 +161,12 @@
 <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/vuetify@2.x/dist/vuetify.js"></script>
 <script src="https://unpkg.com/vue-meta/dist/vue-meta.js"></script>
+<script src="./assetsList.js"></script>
+<script src="./globals.js"></script>
+<script src="./Inventory.js"></script>
 <script src="./Needs.js"></script>
 <script src="./Stats.js"></script>
 <script src="./Person.js"></script>
 <script src="./Player.js"></script>
-<script src="./globals.js"></script>
 <script src="./main.js"></script>
 </html>

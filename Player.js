@@ -1,30 +1,35 @@
 function Player(hp, ap) {
-  Person.call(this);
   Needs.call(this);
+  Person.call(this);
   Stats.call(this);
+  Inventory.call(this);
 
   this.hp = hp || 100;
   this.ap = ap || 100;
 }
 
-Player.prototype.eat = function() {
-  const newValue = this.hunger.value + 10;
-
-  if (newValue <= this.hunger.cap) {
-    this.hunger.value = newValue;
-  } else {
-    this.hunger.value = this.hunger.cap;
-  }
-
-  console.log(this.hunger);
+Player.prototype = {
+  ...Needs.prototype,
+  ...Inventory.prototype
 }
 
-Player.prototype.getHungry = function() {
-  const newValue = this.hunger.value - 2;
+Player.prototype.time = function() {
+  this.getHungry();
+  this.getThirst();
+  this.getFullBladder();
+  this.live();
+}
 
-  if (newValue < 0) {
-    this.hunger.value = 0;
-  } else {
-    this.hunger.value = newValue;
+Player.prototype.buy = function(asset, quantity = 1) {
+  const totalPrice = asset.price * quantity;
+  const canBuy = (this.money - totalPrice) >= 0;
+
+  if (canBuy) {
+    this.add(asset, quantity);
+    this.money = this.money - totalPrice;
   }
+}
+
+Player.prototype.work = function() {
+  this.money = this.money + 150;
 }
